@@ -22,6 +22,10 @@
   <property name="windowTitle">
    <string>LMAOBOX Linux Helper</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>icon.png</normaloff>icon.png</iconset>
+  </property>
   <property name="animated">
    <bool>true</bool>
   </property>
