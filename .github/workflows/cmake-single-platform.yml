@@ -30,7 +30,7 @@ jobs:
     - name: Qt to AppImage
       uses: Kidev/Qt-AppImage@v0.0.8
       with:
-        install_folder: '${{github.workspace}}/build/Qt'
+        install_folder: '${{ steps.install_qt.outputs.qtdir }}'
         app_name: 'LinuxHelper'
         comment: 'Install Helper for LMAOBOX'
         category: 'Utility'
