@@ -77,7 +77,7 @@ jobs:
     - name: Create and Upload Release
       uses: softprops/action-gh-release@v2
       with:
-        files: output/LinuxHelper-x86_64.AppImage
+        files: output/Linux_Helper-x86_64.AppImage
         name: Linux Helper ${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: false
