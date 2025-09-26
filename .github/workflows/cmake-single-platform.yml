@@ -43,7 +43,7 @@ jobs:
     - name: Copy Qt libraries and plugins
       run: |
         mkdir -p app/lib app/plugins
-        QT_PATH=${{ steps.install_qt.outputs.qt-path }}
+        QT_PATH=${QT_ROOT_DIR}
 
         # Copy Qt shared libraries
         cp -r $QT_PATH/lib/* app/lib/
@@ -51,7 +51,6 @@ jobs:
         # Copy Qt plugins (platforms, imageformats, etc.)
         cp -r $QT_PATH/plugins/* app/plugins/
 
-        # Optional: copy QML if needed
         if [ -d "$QT_PATH/qml" ]; then
           cp -r $QT_PATH/qml app/qml
         fi
