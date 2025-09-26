@@ -1,10 +1,5 @@
 name: Build Program
 
-# Trigger on version tags like v1.0.0
-#on:
-  #push:
-    #tags:
-      #- 'v*'
 on:
   push:
     branches: [ "main" ]
@@ -22,51 +17,63 @@ jobs:
     # Checkout the repository
     - uses: actions/checkout@v4
 
-    - name: Install FUSE
-      run: sudo apt-get update && sudo apt-get install -y fuse libfuse2
-
     # Install Qt
     - name: Install Qt
       id: install_qt
       uses: jurplel/install-qt-action@v4.3.0
       with:
-        cache: 'true'
         version: '6.8.3'
+        cache: 'true'
 
-    - name: Verify Qt Path
-      run: |
-        if [ ! -d "/home/runner/work/lbox-linux-install-helper/Qt/6.8.3/gcc_64" ]; then
-          echo "Qt directory not found!"
-          exit 1
-        fi
-
-    # Configure CMake
+    # Configure CMake with install path
     - name: Configure CMake
-      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      run: cmake -S . -B build \
+        -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+        -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/app
 
     # Build project
     - name: Build
+      run: cmake --build build --target all
+
+    # Install project into app folder (creates bin/, lib/, etc.)
+    - name: Install to app folder
+      run: cmake --install build
+
+    # Copy Qt libraries and plugins into app folder
+    - name: Copy Qt libraries and plugins
       run: |
-         cmake --build build --target all
+        mkdir -p app/lib app/plugins
+        QT_PATH=${{ steps.install_qt.outputs.qt-path }}
+
+        # Copy Qt shared libraries
+        cp -r $QT_PATH/lib/* app/lib/
+
+        # Copy Qt plugins (platforms, imageformats, etc.)
+        cp -r $QT_PATH/plugins/* app/plugins/
+
+        # Optional: copy QML if needed
+        if [ -d "$QT_PATH/qml" ]; then
+          cp -r $QT_PATH/qml app/qml
+        fi
 
     # Package as AppImage
     - name: Qt to AppImage
       id: appimage
       uses: Kidev/Qt-AppImage@v0.0.8
       with:
-        install_folder: '${QT_ROOT_DIR}'
+        install_folder: '${{ github.workspace }}/app'
         app_name: 'linux-helper'
         comment: 'Install Helper for LMAOBOX'
         category: 'Utility'
         icon: 'icon.png'
-        binary: 'lbox-linux-install-helper'
+        binary: 'bin/lbox-linux-install-helper'
 
     # Extract version from the Git tag
     - name: Get Version
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-    # Create and upload GitHub Release
+    # Create and upload GitHub Pre-release
     - name: Create/Update GitHub Pre-release
       uses: softprops/action-gh-release@v2
       with:
