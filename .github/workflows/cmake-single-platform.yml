@@ -38,12 +38,12 @@ jobs:
       id: appimage
       uses: Kidev/Qt-AppImage@v0.0.8
       with:
-        install_folder: '${{ steps.install_qt.outputs.qtdir }}'
+        cache: 'true'
+        install_folder: '${{github.workspace}}/build/Q/6.8.3'
         app_name: 'lbox-linux-install-helper'
         comment: 'Install Helper for LMAOBOX'
         category: 'Utility'
         icon: 'icon.png'
-        binary: 'lbox-linux-install-helper'
 
     # Extract version from the Git tag
     - name: Get Version
