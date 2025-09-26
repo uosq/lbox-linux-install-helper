@@ -22,6 +22,7 @@ jobs:
       id: install_qt
       uses: jurplel/install-qt-action@v4.3.0
       with:
+        cache: 'true'
         dir: '${{ github.workspace }}/build'
         version: '6.8.3'
 
@@ -38,8 +39,7 @@ jobs:
       id: appimage
       uses: Kidev/Qt-AppImage@v0.0.8
       with:
-        cache: 'true'
-        install_folder: '${{github.workspace}}/build/Qt/6.8.3'
+        install_folder: '${{github.workspace}}/build/Qt'
         app_name: 'lbox-linux-install-helper'
         comment: 'Install Helper for LMAOBOX'
         category: 'Utility'
