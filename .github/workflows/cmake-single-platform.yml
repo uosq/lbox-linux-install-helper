@@ -1,85 +1,85 @@
-name: Build Program
+name: Build Linux Helper
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-env:
-  BUILD_TYPE: Release
+    tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout the repository
     - uses: actions/checkout@v4
 
-    # Install Qt
-    - name: Install Qt
-      id: install_qt
-      uses: jurplel/install-qt-action@v4.3.0
+    - uses: jurplel/install-qt-action@v4.3.0
       with:
-        version: '6.8.3'
         cache: 'true'
+        version: '6.8.3'
 
-    # Configure CMake with install path
-    - name: Configure CMake
-      run: cmake -S . -B build \
-        -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-        -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/app
-
-    # Build project
-    - name: Build
-      run: cmake --build build --target all
-
-    # Install project into app folder (creates bin/, lib/, etc.)
-    - name: Install to app folder
-      run: cmake --install build
-
-    # Copy Qt libraries and plugins into app folder
-    - name: Copy Qt libraries and plugins
+    - name: Set build output directory
+      id: strings
+      shell: bash
       run: |
-        mkdir -p app/lib app/plugins
-        QT_PATH=${QT_ROOT_DIR}
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-        # Copy Qt shared libraries
-        cp -r $QT_PATH/lib/* app/lib/
+    - name: Configure CMake
+      run: |
+        cmake -B ${{ steps.strings.outputs.build-output-dir }} \
+          -DCMAKE_C_COMPILER=gcc \
+          -DCMAKE_CXX_COMPILER=g++ \
+          -DCMAKE_BUILD_TYPE=Release \
+          -S ${{ github.workspace }}
 
-        # Copy Qt plugins (platforms, imageformats, etc.)
-        cp -r $QT_PATH/plugins/* app/plugins/
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
 
-        if [ -d "$QT_PATH/qml" ]; then
-          cp -r $QT_PATH/qml app/qml
-        fi
+    # ---- Package AppImage ----
+    - name: Package AppImage
+      run: |
+        APPDIR=AppDir
+        mkdir -p $APPDIR/usr/bin
+        cp ${{ steps.strings.outputs.build-output-dir }}/lbox-linux-install-helper $APPDIR/usr/bin/
 
-    # Package as AppImage
-    - name: Qt to AppImage
-      id: appimage
-      uses: Kidev/Qt-AppImage@v0.0.8
-      with:
-        install_folder: '${{ github.workspace }}/app'
-        app_name: 'linux-helper'
-        comment: 'Install Helper for LMAOBOX'
-        category: 'Utility'
-        icon: 'icon.png'
-        binary: 'bin/lbox-linux-install-helper'
+        mkdir -p $APPDIR/usr/share/applications
+        cat > $APPDIR/usr/share/applications/linux-helper.desktop <<EOF
+        [Desktop Entry]
+        Name=Linux Helper
+        Exec=lbox-linux-install-helper
+        Icon=linux-helper
+        Type=Application
+        Categories=Utility;
+        EOF
 
-    # Extract version from the Git tag
+        # copy existing 64x64 icon
+        mkdir -p $APPDIR/usr/share/icons/hicolor/64x64/apps
+        cp ${{ github.workspace }}/icon.png $APPDIR/usr/share/icons/hicolor/64x64/apps/linux-helper.png
+
+        # download linuxdeploy + Qt plugin
+        wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+        wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+        chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage
+
+        # create AppImage
+        ./linuxdeploy-x86_64.AppImage --appdir $APPDIR \
+          --plugin qt \
+          --output appimage
+
+        mkdir -p output
+        cp LinuxHelper-x86_64.AppImage output/
+
+      # Extract version from the commit tag
     - name: Get Version
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-    # Create and upload GitHub Pre-release
-    - name: Create/Update GitHub Pre-release
+      # Create release and upload AppImage
+    - name: Create and Upload Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: nightly
-        name: "Nightly Build"
-        prerelease: true
-        overwrite_files: true
-        files: ${{ steps.appimage.outputs.appimage }}
+        files: output/LinuxHelper-x86_64.AppImage
+        name: Linux Helper ${{ steps.get_version.outputs.VERSION }}
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
