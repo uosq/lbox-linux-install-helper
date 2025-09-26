@@ -23,7 +23,7 @@ jobs:
       uses: jurplel/install-qt-action@v4.3.0
       with:
         cache: 'true'
-        dir: '${{ github.workspace }}/build'
+        dir: '${{ github.workspace }}/build/Qt'
         version: '6.8.3'
 
     # Configure CMake
