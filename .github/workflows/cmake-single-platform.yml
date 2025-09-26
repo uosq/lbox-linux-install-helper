@@ -39,7 +39,7 @@ jobs:
       uses: Kidev/Qt-AppImage@v0.0.8
       with:
         install_folder: '${{ steps.install_qt.outputs.qtdir }}'
-        app_name: 'LinuxHelper'
+        app_name: 'lbox-linux-install-helper'
         comment: 'Install Helper for LMAOBOX'
         category: 'Utility'
         icon: 'icon.png'
