@@ -1,10 +1,15 @@
 name: Build Program
 
 # Trigger on version tags like v1.0.0
+#on:
+  #push:
+    #tags:
+      #- 'v*'
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 env:
   BUILD_TYPE: Release
@@ -17,6 +22,9 @@ jobs:
     # Checkout the repository
     - uses: actions/checkout@v4
 
+    - name: Install FUSE
+      run: sudo apt-get update && sudo apt-get install -y fuse libfuse2
+
     # Install Qt
     - name: Install Qt
       id: install_qt
@@ -24,6 +32,13 @@ jobs:
       with:
         cache: 'true'
         version: '6.8.3'
+
+    - name: Verify Qt Path
+      run: |
+        if [ ! -d "/home/runner/work/lbox-linux-install-helper/Qt/6.8.3/gcc_64" ]; then
+          echo "Qt directory not found!"
+          exit 1
+        fi
 
     # Configure CMake
     - name: Configure CMake
@@ -52,12 +67,13 @@ jobs:
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
     # Create and upload GitHub Release
-    - name: Create and Upload Release
+    - name: Create/Update GitHub Pre-release
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: nightly
+        name: "Nightly Build"
+        prerelease: true
+        overwrite_files: true
         files: ${{ steps.appimage.outputs.appimage }}
-        name: LinuxInstallHelper ${{ steps.get_version.outputs.VERSION }}
-        draft: false
-        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
