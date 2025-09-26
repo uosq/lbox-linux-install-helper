@@ -1,6 +1,6 @@
 name: Build Program
 
-# Will trigger when a commit is tagged 'v*' (v1.0.0 for example)
+# Trigger on version tags like v1.0.0
 on:
   push:
     tags:
@@ -14,34 +14,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Checkout the repository
     - uses: actions/checkout@v4
 
+    # Install Qt
     - name: Install Qt
+      id: install_qt
       uses: jurplel/install-qt-action@v4.3.0
       with:
-        dir: '${{github.workspace}}/build'
+        dir: '${{ github.workspace }}/build'
         version: '6.8.3'
 
+    # Configure CMake
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
+    # Build project
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
 
+    # Package as AppImage
     - name: Qt to AppImage
+      id: appimage
       uses: Kidev/Qt-AppImage@v0.0.8
       with:
-        install_folder: '${{ steps.install_qt.outputs.qtdir }}/6.8.3'
+        install_folder: '${{ steps.install_qt.outputs.qtdir }}'
         app_name: 'LinuxHelper'
         comment: 'Install Helper for LMAOBOX'
         category: 'Utility'
-        icon: 'icon,png'
+        icon: 'icon.png'
+        binary: 'lbox-linux-install-helper'
 
-      # Extract version from the commit tag
+    # Extract version from the Git tag
     - name: Get Version
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+    # Create and upload GitHub Release
     - name: Create and Upload Release
       uses: softprops/action-gh-release@v2
       with:
