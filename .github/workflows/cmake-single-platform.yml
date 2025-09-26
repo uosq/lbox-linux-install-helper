@@ -23,7 +23,7 @@ jobs:
       uses: jurplel/install-qt-action@v4.3.0
       with:
         cache: 'true'
-        dir: '${{ github.workspace }}/build/Qt'
+        dir: '${{ github.workspace }}/build'
         version: '6.8.3'
 
     # Configure CMake
@@ -39,7 +39,7 @@ jobs:
       id: appimage
       uses: Kidev/Qt-AppImage@v0.0.8
       with:
-        install_folder: '${{github.workspace}}/build/Qt'
+        install_folder: '${{github.workspace}}/build/Qt/6.8.3'
         app_name: 'lbox-linux-install-helper'
         comment: 'Install Helper for LMAOBOX'
         category: 'Utility'
