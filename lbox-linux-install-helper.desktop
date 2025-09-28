@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=LMAOBOX Linux Helper
+Exec=lbox-linux-install-helper
+Icon=icon.png
+Categories=Utility

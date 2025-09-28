@@ -4,6 +4,8 @@
 
 ---
 
+Dependencies: `Qt5/6`
+
 Build instructions:
 
 ```sh
