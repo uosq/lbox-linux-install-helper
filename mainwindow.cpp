@@ -20,71 +20,88 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/* Fuck you Qt */
+auto expandHome = [](QString path) -> QString {
+    if (path.startsWith("~")) {
+        path.replace(0, 1, QDir::homePath());
+    }
+    return path;
+};
+
 void MainWindow::on_pushButton_3_clicked()
 {
-    // file paths
-    QString tfpath = ui->tfPath->text();
-    QString lboxpath = ui->loaderPath->text();
+    // file paths from UI
+    QString tfpath = ui->tfPath->text().trimmed();
+    QString lboxpath = ui->loaderPath->text().trimmed();
+    QString protonPath = ui->protonPath->text().trimmed();
 
-    if (ui->tfPath->text().isEmpty() || ui->loaderPath->text().isEmpty()) {
+    // basic validation
+    if (tfpath.isEmpty() || lboxpath.isEmpty()) {
         QMessageBox::critical(this, "Error!", "Your TF2 and/or LMAOBOX path is empty!");
         return;
     }
 
-    if (ui->protonPath->text().trimmed().isEmpty()) {
+    if (protonPath.isEmpty()) {
         QMessageBox::critical(this, "Error!", "Your Proton path is empty!");
         return;
     }
 
+    // convert to absolute paths
+    tfpath = expandHome(tfpath);
+    lboxpath = expandHome(lboxpath);
+    protonPath = expandHome(protonPath);
+
+    // select .bat file save location
     QString filter = "Bat file (*.bat)";
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save .bat file"), QDir::currentPath(), filter);
     if (fileName.isEmpty())
         return;
 
+    // normalize slashes and remove trailing backslashes
+    tfpath.replace("/", "\\");
+    lboxpath.replace("/", "\\");
+    if (tfpath.endsWith("\\")) tfpath.chop(1);
+    if (lboxpath.endsWith("\\")) lboxpath.chop(1);
+    if (protonPath.endsWith("/")) protonPath.chop(1);
+
+    // get launch options (use user input if available, otherwise placeholder)
+    QString tfOptions = ui->tfOptions->text().isEmpty() ? ui->tfOptions->placeholderText() : ui->tfOptions->text();
+    QString loaderOptions = ui->loaderOptions->text().isEmpty() ? ui->loaderOptions->placeholderText() : ui->loaderOptions->text();
+
+    // write .bat file
     QFile file(fileName);
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "Error!", "Failed to create .bat file!");
+        return;
+    }
 
-        // launch options
-        QString tfOptions = ui->tfOptions->placeholderText();
-        QString loaderOptions = ui->loaderOptions->placeholderText();
+    QTextStream out(&file);
+    out << "start \"\" cmd /c \"Z:" + tfpath + "\\tf_win64.exe\" " + tfOptions + "\n";
+    out << "start \"\" cmd /c \"Z:" + lboxpath + "\" " + loaderOptions + "\n";
+    file.close();
 
-        if (!ui->tfOptions->text().isEmpty())
-            tfOptions = ui->tfOptions->text();
+    // prepare Proton launch command
+    QString protonCmd = "\"" + protonPath + "/proton\" run \"" + fileName + "\" ; # %command%";
+    qDebug() << protonCmd;
 
-        if (!ui->loaderOptions->text().isEmpty())
-            loaderOptions = ui->loaderOptions->text();
+    // copy launch command to clipboard
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setText(protonCmd);
 
-        tfpath.replace("/", "\\");
-        lboxpath.replace("/", "\\");
+    // also save launch command to a text file in the same directory
+    QFileInfo info(fileName);
+    QFile launchFile(info.absolutePath() + "/launch-options.txt");
+    if (launchFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out2(&launchFile);
+        out2 << protonCmd;
+        launchFile.close();
 
-        out << "start \"\" cmd /c \"Z:" + tfpath + "\" " + tfOptions + "\n";
-        out << "start \"\" cmd /c \"Z:" + lboxpath + "\" " + loaderOptions;
-
-        file.close();
-
-        QFileInfo info(fileName);
-        QString dir = info.absolutePath();
-
-        QClipboard *clipboard = QGuiApplication::clipboard();
-        clipboard->setText("\"" + ui->protonPath->text() + "/proton\" run \"" + fileName + "\" ; # %command%");
-
-        QFile launchFile(dir + "/launch-options.txt");
-        if (launchFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            QTextStream out2(&launchFile);
-
-            out2 << "\"" + ui->protonPath->text() + "/proton\" run \"" + fileName + "\" ; # %command%";
-
-            launchFile.close();
-
-            QMessageBox::information(this, "Success!", "Copied to clipboard the launch options for tf2!\n"
-                                                       "Place them in\n"
-                                                       "Steam -> Team Fortress 2 -> Properties -> Launch Options\n"
-                                                       "The copied launch options were saved in the same folder as the .bat file!");
-        }
+        QMessageBox::information(this, "Success!",
+                                 "Copied to clipboard the launch options for TF2!\n"
+                                 "Place them in Steam -> Team Fortress 2 -> Properties -> Launch Options.\n"
+                                 "The copied launch options were saved in the same folder as the .bat file!");
     }
 }
-
 
 void MainWindow::on_pushButton_clicked()
 {
@@ -108,7 +125,11 @@ void MainWindow::on_pushButton_4_clicked()
                                               "Example for Proton 9.0:\n~/.steam/steam/steamapps/common/Proton 9.0 (Beta)");
     QString dir = QFileDialog::getExistingDirectory(this, "Select Proton's directory", QDir::currentPath());
     if (!dir.isEmpty()) {
+        if (dir.endsWith("/"))
+            dir.chop(1);
+
         QFileInfo proton(dir + "/proton");
+        qDebug() << dir + "/proton";
         if (proton.exists() && proton.isFile() && proton.isExecutable())
             ui->protonPath->setText(dir);
         else QMessageBox::critical(this, "Error!", "Invalid Proton folder, make sure it has a 'proton' file!");
