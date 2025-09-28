@@ -2,8 +2,9 @@ name: Build & Release Qt AppImage
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 env:
   BUILD_TYPE: Release
@@ -46,9 +47,8 @@ jobs:
           --plugin qt \
           --output appimage
 
-    - name: Upload release
-      uses: softprops/action-gh-release@v1
+    - name: Upload AppImage as artifact
+      uses: actions/upload-artifact@v4
       with:
-        files: "*.AppImage"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: ${{ env.APP_NAME }}-${{ github.ref_name }}-x86_64
+        path: ./*.AppImage
