@@ -2,5 +2,5 @@
 Type=Application
 Name=LMAOBOX Linux Helper
 Exec=lbox-linux-install-helper
-Icon=icon.png
+Icon=icon
 Categories=Utility
