@@ -1,0 +1,54 @@
+name: Build & Release Qt AppImage
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  BUILD_TYPE: Release
+  APP_NAME: lbox-linux-install-helper
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.8.3'
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: cmake --build build --config ${{env.BUILD_TYPE}} --parallel
+
+    - name: Install project
+      run: cmake --install build --prefix AppDir/usr
+
+    - name: Download linuxdeploy + Qt plugin
+      run: |
+        wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+        wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+        chmod +x linuxdeploy-*.AppImage
+
+    - name: Build AppImage
+      run: |
+        ./linuxdeploy-x86_64.AppImage \
+          --appdir AppDir \
+          -d ${{ github.workspace }}/lbox-linux-install-helper.desktop \
+          -i ${{ github.workspace }}/icon.png \
+          --plugin qt \
+          --output appimage
+
+    - name: Upload release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "*.AppImage"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
