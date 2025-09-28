@@ -51,4 +51,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.APP_NAME }}-${{ github.ref_name }}-x86_64
-        path: LMAOBOX_Linux_Helper_x86_64.AppImage
+        path: ./LMAOBOX_Linux_Helper-x86_64.AppImage
