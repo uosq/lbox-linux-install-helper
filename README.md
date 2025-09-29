@@ -6,6 +6,8 @@
 
 Dependencies: `Qt5/6`
 
+You can use your distros's package manager to install it. Install at least qtbase
+
 Build instructions:
 
 ```sh
