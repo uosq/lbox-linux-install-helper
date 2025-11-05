@@ -76,8 +76,8 @@ void MainWindow::on_pushButton_3_clicked()
     }
 
     QTextStream out(&file);
-    out << "start \"\" cmd /c \"Z:" + tfpath + "\\tf_win64.exe\" " + tfOptions + "\n";
-    out << "start \"\" cmd /c \"Z:" + lboxpath + "\" " + loaderOptions + "\n";
+    out << "start \"Z:" + tfpath + "\\tf_win64.exe\" " + tfOptions + "\n";
+    out << "start \"Z:" + lboxpath + "\" " + loaderOptions + "\n";
     file.close();
 
     // prepare Proton launch command
