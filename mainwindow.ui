@@ -48,6 +48,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="loaderPath">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);</string>
+        </property>
         <property name="placeholderText">
          <string>example: /home/youruser/tf2 cheats/fgthydfm.exe</string>
         </property>
@@ -91,6 +94,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="tfPath">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);</string>
+        </property>
         <property name="placeholderText">
          <string>/home/youruser/.steam/steam/steamapps/common/Team Fortress 2</string>
         </property>
@@ -134,6 +140,9 @@
         <property name="toolTip">
          <string>If empty, will use the placeholder text instead</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -161,6 +170,9 @@
         <property name="toolTip">
          <string>If empty, will use the placeholder text instead</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -182,6 +194,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="protonPath">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(255, 255, 255);</string>
+        </property>
         <property name="placeholderText">
          <string>/home/youruser/.steam/steam/steamapps/common/Proton 9.0 (Beta)</string>
         </property>
