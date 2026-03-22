@@ -75,6 +75,9 @@ void MainWindow::on_pushButton_3_clicked()
         return;
     }
 
+    if (!tfOptions.contains("-steam"))
+        tfOptions += " -steam";
+
     QTextStream out(&file);
     out << "start \"Z:" + tfpath + "\\tf_win64.exe\" " + tfOptions + "\n";
     out << "start \"Z:" + lboxpath + "\" " + loaderOptions + "\n";

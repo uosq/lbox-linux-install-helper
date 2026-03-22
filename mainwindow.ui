@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>746</width>
-    <height>230</height>
+    <height>235</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -138,7 +138,7 @@
          <string/>
         </property>
         <property name="placeholderText">
-         <string>-insecure</string>
+         <string/>
         </property>
        </widget>
       </item>
@@ -165,7 +165,7 @@
          <string/>
         </property>
         <property name="placeholderText">
-         <string>-vulkan</string>
+         <string>-vulkan -steam</string>
         </property>
        </widget>
       </item>
@@ -217,7 +217,7 @@
      <x>0</x>
      <y>0</y>
      <width>746</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>
